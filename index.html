@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="theme-color"
+        content="#020617">
+
+    <title>ESP32 Control</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+
+            min-height: 100vh;
+            min-height: 100dvh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 16px;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            color: #f8fafc;
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #1e293b 0%,
+                    #0f172a 45%,
+                    #020617 100%
+                );
+
+            -webkit-tap-highlight-color:
+                transparent;
+        }
+
+
+        /* =========================
+           CARD
+        ========================= */
+
+        .container {
+
+            width: 100%;
+            max-width: 440px;
+
+        }
+
+        .card {
+
+            width: 100%;
+
+            padding: 28px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.08);
+
+            border-radius: 24px;
+
+            background:
+                rgba(15,23,42,0.90);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            box-shadow:
+                0 25px 70px
+                rgba(0,0,0,0.45),
+
+                inset 0 1px 0
+                rgba(255,255,255,0.04);
+        }
+
+
+        /* =========================
+           CABEÇALHO
+        ========================= */
+
+        .header {
+
+            text-align: center;
+
+            margin-bottom: 25px;
+
+        }
+
+        .icon {
+
+            width: 70px;
+            height: 70px;
+
+            margin:
+                0 auto 15px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #7c3aed
+                );
+
+            font-size: 34px;
+
+            box-shadow:
+                0 12px 30px
+                rgba(37,99,235,0.35);
+        }
+
+        h1 {
+
+            font-size: 26px;
+
+            margin-bottom: 6px;
+
+        }
+
+        .subtitle {
+
+            color: #94a3b8;
+
+            font-size: 14px;
+
+        }
+
+
+        /* =========================
+           STATUS
+        ========================= */
+
+        .status {
+
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 16px;
+
+            margin-bottom: 20px;
+
+            border-radius: 16px;
+
+            background:
+                rgba(255,255,255,0.04);
+
+            border:
+                1px solid
+                rgba(255,255,255,0.06);
+        }
+
+        .status-left {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+        }
+
+        .led {
+
+            width: 14px;
+            height: 14px;
+
+            flex-shrink: 0;
+
+            border-radius: 50%;
+
+            background: #64748b;
+
+            transition:
+                0.3s ease;
+        }
+
+        .led.on {
+
+            background: #22c55e;
+
+            box-shadow:
+                0 0 10px #22c55e,
+                0 0 25px
+                rgba(34,197,94,0.5);
+        }
+
+        .status-title {
+
+            font-size: 15px;
+
+            font-weight: 700;
+
+        }
+
+        .status-text {
+
+            margin-top: 3px;
+
+            color: #94a3b8;
+
+            font-size: 13px;
+
+        }
+
+        #statusValue {
+
+            font-size: 14px;
+
+            font-weight: 800;
+
+            color: #94a3b8;
+
+        }
+
+
+        /* =========================
+           BOTÕES
+        ========================= */
+
+        .buttons {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 12px;
+
+        }
+
+        button {
+
+            width: 100%;
+
+            border: 0;
+
+            padding: 17px;
+
+            border-radius: 15px;
+
+            color: white;
+
+            font-size: 15px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            touch-action: manipulation;
+
+            transition:
+                transform 0.15s ease,
+                filter 0.15s ease;
+        }
+
+        button:hover {
+
+            filter:
+                brightness(1.08);
+
+            transform:
+                translateY(-2px);
+
+        }
+
+        button:active {
+
+            transform:
+                scale(0.97);
+
+        }
+
+        button:disabled {
+
+            opacity: 0.6;
+
+            cursor:
+                not-allowed;
+
+            transform:
+                none;
+        }
+
+        .btn-on {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #16a34a,
+                    #22c55e
+                );
+
+            box-shadow:
+                0 10px 25px
+                rgba(34,197,94,0.20);
+        }
+
+        .btn-off {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #dc2626,
+                    #ef4444
+                );
+
+            box-shadow:
+                0 10px 25px
+                rgba(239,68,68,0.20);
+        }
+
+
+        /* =========================
+           CONEXÃO
+        ========================= */
+
+        .connection {
+
+            margin-top: 22px;
+
+        }
+
+        .connection-title {
+
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #cbd5e1;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+        }
+
+        .url {
+
+            width: 100%;
+
+            padding: 13px 14px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.08);
+
+            border-radius: 12px;
+
+            outline: none;
+
+            background:
+                rgba(2,6,23,0.7);
+
+            color: #94a3b8;
+
+            font-size: 12px;
+
+        }
+
+
+        /* =========================
+           MENSAGEM
+        ========================= */
+
+        .message {
+
+            min-height: 20px;
+
+            margin-top: 18px;
+
+            text-align: center;
+
+            color: #94a3b8;
+
+            font-size: 13px;
+
+        }
+
+
+        /* =========================
+           RODAPÉ
+        ========================= */
+
+        .footer {
+
+            margin-top: 20px;
+
+            text-align: center;
+
+            color: #475569;
+
+            font-size: 11px;
+
+        }
+
+
+        /* =========================
+           CELULAR
+        ========================= */
+
+        @media (max-width: 600px) {
+
+            body {
+
+                align-items: flex-start;
+
+                padding: 12px;
+
+            }
+
+            .container {
+
+                max-width: 100%;
+
+                margin-top: 10px;
+
+            }
+
+            .card {
+
+                padding:
+                    22px 18px;
+
+                border-radius:
+                    20px;
+
+            }
+
+            .icon {
+
+                width: 64px;
+                height: 64px;
+
+                font-size: 30px;
+
+            }
+
+            h1 {
+
+                font-size: 23px;
+
+            }
+
+            .subtitle {
+
+                font-size: 13px;
+
+            }
+
+            .buttons {
+
+                grid-template-columns:
+                    1fr;
+
+                gap: 10px;
+
+            }
+
+            button {
+
+                min-height: 58px;
+
+                font-size: 16px;
+
+            }
+
+        }
+
+
+        /* =========================
+           CELULAR PEQUENO
+        ========================= */
+
+        @media (max-width: 360px) {
+
+            .card {
+
+                padding:
+                    18px 14px;
+
+            }
+
+            .icon {
+
+                width: 58px;
+                height: 58px;
+
+                font-size: 27px;
+
+            }
+
+            h1 {
+
+                font-size: 21px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+    <div class="card">
+
+
+        <!-- CABEÇALHO -->
+
+        <div class="header">
+
+            <div class="icon">
+                ⚡
+            </div>
+
+            <h1>
+                ESP32 Control
+            </h1>
+
+            <div class="subtitle">
+                Painel de controle da linha +
+            </div>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div class="status">
+
+            <div class="status-left">
+
+                <div
+                    id="led"
+                    class="led">
+                </div>
+
+                <div>
+
+                    <div class="status-title">
+                        Estado
+                    </div>
+
+                    <div
+                        id="statusText"
+                        class="status-text">
+
+                        Verificando...
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div id="statusValue">
+                —
+            </div>
+
+        </div>
+
+
+        <!-- BOTÕES -->
+
+        <div class="buttons">
+
+            <button
+                id="btnLigar"
+                class="btn-on"
+                onclick="ligar()">
+
+                💡 LIGAR
+
+            </button>
+
+
+            <button
+                id="btnDesligar"
+                class="btn-off"
+                onclick="desligar()">
+
+                ⏻ DESLIGAR
+
+            </button>
+
+        </div>
+
+
+        <!-- ENDEREÇO -->
+
+        <div class="connection">
+
+            <span class="connection-title">
+
+                API do ESP32
+
+            </span>
+
+
+            <input
+                class="url"
+                type="text"
+                value="https://moss-worker-disciplinary-nam.trycloudflare.com"
+                readonly>
+
+        </div>
+
+
+        <!-- MENSAGEM -->
+
+        <div
+            id="message"
+            class="message">
+
+            Conectando ao ESP32...
+
+        </div>
+
+
+        <!-- RODAPÉ -->
+
+        <div class="footer">
+
+            ESP32 • HTTP API • Cloudflare
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+    // ==========================================
+    // URL BASE DA API
+    // ==========================================
+
+    const ESP32 =
+        "https://moss-worker-disciplinary-nam.trycloudflare.com";
+
+
+    // ==========================================
+    // ELEMENTOS
+    // ==========================================
+
+    const led =
+        document.getElementById("led");
+
+    const statusText =
+        document.getElementById("statusText");
+
+    const statusValue =
+        document.getElementById("statusValue");
+
+    const message =
+        document.getElementById("message");
+
+    const btnLigar =
+        document.getElementById("btnLigar");
+
+    const btnDesligar =
+        document.getElementById("btnDesligar");
+
+
+    // ==========================================
+    // ATUALIZAR INTERFACE
+    // ==========================================
+
+    function atualizarInterface(ligada) {
+
+        if (ligada === true) {
+
+            led.classList.add("on");
+
+            statusText.textContent =
+                "Ligada";
+
+            statusValue.textContent =
+                "ON";
+
+        } else {
+
+            led.classList.remove("on");
+
+            statusText.textContent =
+                "Desligada";
+
+            statusValue.textContent =
+                "OFF";
+
+        }
+
+    }
+
+
+    // ==========================================
+    // LIGAR
+    // ==========================================
+
+    async function ligar() {
+
+        bloquearBotoes(true);
+
+        message.textContent =
+            "Enviando comando para o ESP32...";
+
+        try {
+
+            const response =
+                await fetch(
+                    ESP32 + "/ligar"
+                );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+            atualizarInterface(true);
+
+            message.textContent =
+                "✓ Linha + ligada com sucesso.";
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            message.textContent =
+                "✕ Não foi possível conectar ao ESP32.";
+
+        }
+
+        finally {
+
+            bloquearBotoes(false);
+
+        }
+
+    }
+
+
+    // ==========================================
+    // DESLIGAR
+    // ==========================================
+
+    async function desligar() {
+
+        bloquearBotoes(true);
+
+        message.textContent =
+            "Enviando comando para o ESP32...";
+
+        try {
+
+            const response =
+                await fetch(
+                    ESP32 + "/desligar"
+                );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+            atualizarInterface(false);
+
+            message.textContent =
+                "✓ Linha + desligada com sucesso.";
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            message.textContent =
+                "✕ Não foi possível conectar ao ESP32.";
+
+        }
+
+        finally {
+
+            bloquearBotoes(false);
+
+        }
+
+    }
+
+
+    // ==========================================
+    // VERIFICAR STATUS
+    // ==========================================
+
+    async function verificarStatus() {
+
+        try {
+
+            const response =
+                await fetch(
+                    ESP32 + "/status"
+                );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+            const data =
+                await response.json();
+
+            atualizarInterface(
+                data.ligada
+            );
+
+            message.textContent =
+                "✓ ESP32 conectado.";
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            statusText.textContent =
+                "Sem conexão";
+
+            statusValue.textContent =
+                "OFF";
+
+            led.classList.remove("on");
+
+            message.textContent =
+                "✕ ESP32 não respondeu.";
+
+        }
+
+    }
+
+
+    // ==========================================
+    // BLOQUEAR BOTÕES DURANTE REQUISIÇÃO
+    // ==========================================
+
+    function bloquearBotoes(bloquear) {
+
+        btnLigar.disabled =
+            bloquear;
+
+        btnDesligar.disabled =
+            bloquear;
+
+    }
+
+
+    // ==========================================
+    // INICIAR
+    // ==========================================
+
+    verificarStatus();
+
+</script>
+
+
+</body>
+
+</html>
