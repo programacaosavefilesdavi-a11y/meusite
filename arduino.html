@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="theme-color"
+        content="#020617">
+
+    <title>ESP32 Control</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 16px;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            color: white;
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    #1e293b,
+                    #020617 70%
+                );
+        }
+
+        .card {
+            width: 100%;
+            max-width: 430px;
+
+            padding: 25px;
+
+            border-radius: 24px;
+
+            background:
+                rgba(15, 23, 42, 0.92);
+
+            border:
+                1px solid
+                rgba(255,255,255,0.08);
+
+            box-shadow:
+                0 20px 60px
+                rgba(0,0,0,.45);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .icon {
+            width: 65px;
+            height: 65px;
+
+            margin: 0 auto 12px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 18px;
+
+            font-size: 30px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #7c3aed
+                );
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 16px;
+
+            margin-bottom: 15px;
+
+            border-radius: 15px;
+
+            background:
+                rgba(255,255,255,.04);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .led {
+            width: 14px;
+            height: 14px;
+
+            border-radius: 50%;
+
+            background: #64748b;
+        }
+
+        .led.on {
+            background: #22c55e;
+
+            box-shadow:
+                0 0 10px #22c55e,
+                0 0 25px #22c55e;
+        }
+
+        .status-title {
+            font-weight: bold;
+        }
+
+        .status-text {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        #statusValue {
+            font-weight: bold;
+            color: #94a3b8;
+        }
+
+        .buttons {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 10px;
+        }
+
+        button {
+            border: 0;
+
+            padding: 16px;
+
+            border-radius: 14px;
+
+            color: white;
+
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: scale(.97);
+        }
+
+        .on {
+            background:
+                linear-gradient(
+                    135deg,
+                    #16a34a,
+                    #22c55e
+                );
+        }
+
+        .off {
+            background:
+                linear-gradient(
+                    135deg,
+                    #dc2626,
+                    #ef4444
+                );
+        }
+
+        .alert-option {
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            margin-top: 18px;
+
+            padding: 13px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            cursor: pointer;
+        }
+
+        .alert-option input {
+            width: 20px;
+            height: 20px;
+
+            accent-color: #2563eb;
+        }
+
+        .alert-option span {
+            font-size: 14px;
+        }
+
+        .connection {
+            margin-top: 18px;
+        }
+
+        .connection-title {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #94a3b8;
+
+            font-size: 12px;
+        }
+
+        .url {
+            width: 100%;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            border: 1px solid
+                rgba(255,255,255,.08);
+
+            background:
+                #020617;
+
+            color: #94a3b8;
+
+            font-size: 12px;
+        }
+
+        .message {
+            min-height: 20px;
+
+            margin-top: 15px;
+
+            text-align: center;
+
+            color: #94a3b8;
+
+            font-size: 13px;
+        }
+
+        .footer {
+            margin-top: 18px;
+
+            text-align: center;
+
+            color: #475569;
+
+            font-size: 11px;
+        }
+
+        @media (max-width: 600px) {
+
+            body {
+                align-items: flex-start;
+                padding: 12px;
+            }
+
+            .card {
+                margin-top: 10px;
+                padding: 20px 16px;
+            }
+
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                min-height: 58px;
+                font-size: 16px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+    <div class="header">
+
+        <div class="icon">
+            ⚡
+        </div>
+
+        <h1>
+            ESP32 Control
+        </h1>
+
+        <div class="subtitle">
+            Controle da linha +
+        </div>
+
+    </div>
+
+
+    <!-- STATUS -->
+
+    <div class="status">
+
+        <div class="status-left">
+
+            <div
+                id="led"
+                class="led">
+            </div>
+
+            <div>
+
+                <div class="status-title">
+                    Estado
+                </div>
+
+                <div
+                    id="statusText"
+                    class="status-text">
+
+                    Desconhecido
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="statusValue">
+            —
+        </div>
+
+    </div>
+
+
+    <!-- BOTÕES -->
+
+    <div class="buttons">
+
+        <button
+            class="on"
+            onclick="ligar()">
+
+            💡 LIGAR
+
+        </button>
+
+        <button
+            class="off"
+            onclick="desligar()">
+
+            ⏻ DESLIGAR
+
+        </button>
+
+    </div>
+
+
+    <!-- ALERTAS -->
+
+    <label class="alert-option">
+
+        <input
+            type="checkbox"
+            id="mostrarAlertas"
+            checked>
+
+        <span>
+            Mostrar alerta ao ligar/desligar
+        </span>
+
+    </label>
+
+
+    <!-- API -->
+
+    <div class="connection">
+
+        <span class="connection-title">
+            API do ESP32
+        </span>
+
+        <input
+            class="url"
+            type="text"
+            value="https://moss-worker-disciplinary-nam.trycloudflare.com"
+            readonly>
+
+    </div>
+
+
+    <!-- MENSAGEM -->
+
+    <div
+        id="message"
+        class="message">
+
+        Pronto.
+
+    </div>
+
+
+    <div class="footer">
+        ESP32 • Cloudflare Tunnel
+    </div>
+
+</div>
+
+
+<script>
+
+    // ======================================
+    // ENDEREÇO DO ESP32
+    // ======================================
+
+    const ESP32 =
+        "https://moss-worker-disciplinary-nam.trycloudflare.com";
+
+
+    // ======================================
+    // ELEMENTOS
+    // ======================================
+
+    const led =
+        document.getElementById("led");
+
+    const statusText =
+        document.getElementById("statusText");
+
+    const statusValue =
+        document.getElementById("statusValue");
+
+    const message =
+        document.getElementById("message");
+
+    const mostrarAlertas =
+        document.getElementById("mostrarAlertas");
+
+
+    // ======================================
+    // ATUALIZAR STATUS
+    // ======================================
+
+    function atualizarStatus(ligada) {
+
+        if (ligada) {
+
+            led.classList.add("on");
+
+            statusText.innerText =
+                "Ligada";
+
+            statusValue.innerText =
+                "ON";
+
+        } else {
+
+            led.classList.remove("on");
+
+            statusText.innerText =
+                "Desligada";
+
+            statusValue.innerText =
+                "OFF";
+
+        }
+
+    }
+
+
+    // ======================================
+    // LIGAR
+    // ======================================
+
+    async function ligar() {
+
+        message.innerText =
+            "Ligando...";
+
+        try {
+
+            const resposta =
+                await fetch(
+                    ESP32 + "/ligar"
+                );
+
+            if (!resposta.ok) {
+                throw new Error(
+                    "HTTP " +
+                    resposta.status
+                );
+            }
+
+            atualizarStatus(true);
+
+            message.innerText =
+                "✓ Ligado com sucesso.";
+
+            if (
+                mostrarAlertas.checked
+            ) {
+
+                alert(
+                    "💡 Linha + ligada!"
+                );
+
+            }
+
+        } catch (erro) {
+
+            console.error(erro);
+
+            message.innerText =
+                "✕ Erro ao conectar.";
+
+            if (
+                mostrarAlertas.checked
+            ) {
+
+                alert(
+                    "❌ Não foi possível ligar o ESP32."
+                );
+
+            }
+
+        }
+
+    }
+
+
+    // ======================================
+    // DESLIGAR
+    // ======================================
+
+    async function desligar() {
+
+        message.innerText =
+            "Desligando...";
+
+        try {
+
+            const resposta =
+                await fetch(
+                    ESP32 + "/desligar"
+                );
+
+            if (!resposta.ok) {
+                throw new Error(
+                    "HTTP " +
+                    resposta.status
+                );
+            }
+
+            atualizarStatus(false);
+
+            message.innerText =
+                "✓ Desligado com sucesso.";
+
+            if (
+                mostrarAlertas.checked
+            ) {
+
+                alert(
+                    "⏻ Linha + desligada!"
+                );
+
+            }
+
+        } catch (erro) {
+
+            console.error(erro);
+
+            message.innerText =
+                "✕ Erro ao conectar.";
+
+            if (
+                mostrarAlertas.checked
+            ) {
+
+                alert(
+                    "❌ Não foi possível desligar o ESP32."
+                );
+
+            }
+
+        }
+
+    }
+
+
+    // ======================================
+    // CONSULTAR STATUS
+    // ======================================
+
+    async function verificarStatus() {
+
+        try {
+
+            const resposta =
+                await fetch(
+                    ESP32 + "/status"
+                );
+
+            if (!resposta.ok) {
+                throw new Error(
+                    "HTTP " +
+                    resposta.status
+                );
+            }
+
+            const dados =
+                await resposta.json();
+
+            atualizarStatus(
+                dados.ligada
+            );
+
+            message.innerText =
+                "✓ ESP32 conectado.";
+
+        } catch (erro) {
+
+            console.error(erro);
+
+            message.innerText =
+                "✕ ESP32 não respondeu.";
+
+        }
+
+    }
+
+
+    // ======================================
+    // TESTAR AO ABRIR
+    // ======================================
+
+    verificarStatus();
+
+</script>
+
+</body>
+
+</html>
